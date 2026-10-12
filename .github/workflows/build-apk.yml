@@ -1,0 +1,42 @@
+name: Build DEVICE HUB APK
+
+on:
+workflow_dispatch:
+push:
+paths:
+- '.github/workflows/build-apk.yml'
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+
+  - name: Set up Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Set up Gradle
+    uses: gradle/actions/setup-gradle@v4
+
+  - name: Extract Android project
+    run: |
+      mkdir -p project
+      unzip -o DEVICE_HUB_NATIVE.zip -d project
+      find project -maxdepth 4 -type f
+
+  - name: Build debug APK
+    run: |
+      cd project
+      gradle assembleDebug
+
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: DEVICE-HUB-debug-APK
+      path: project/**/build/outputs/apk/debug/*.apk
+      if-no-files-found: error
